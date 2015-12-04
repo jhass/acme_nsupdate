@@ -1,7 +1,5 @@
-GIT
+PATH
   remote: ./acme-client
-  revision: 48ebe45e3ee8048a492bebae7dc9fa8e88275716
-  branch: dns_challenge
   specs:
     acme-client (0.1.3)
       faraday (~> 0.9, >= 0.9.1)

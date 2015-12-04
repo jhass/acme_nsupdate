@@ -3,7 +3,8 @@ module AcmeNsupdate
     class Error < RuntimeError
     end
 
-    def initialize
+    def initialize(logger)
+      @logger = logger
       @commands = []
     end
 
@@ -24,10 +25,13 @@ module AcmeNsupdate
     end
 
     def send
+      @logger.debug("Starting nsupdate:")
       IO.popen("nsupdate", "r+") do |nsupdate|
         @commands.each do |command|
+          @logger.debug("  #{command}")
           nsupdate.puts command
         end
+        @logger.debug("  send")
         nsupdate.puts "send"
         nsupdate.close_write
         errors = nsupdate.readlines.map {|line| line[/^>\s*(.*)$/, 1].strip }.reject(&:empty?)

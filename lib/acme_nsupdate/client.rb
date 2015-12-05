@@ -9,7 +9,7 @@ require "acme_nsupdate/nsupdate"
 module AcmeNsupdate
   class Client
     class Error < RuntimeError
-    end 
+    end
 
     attr_reader :options, :logger
 
@@ -21,14 +21,14 @@ module AcmeNsupdate
       @logger.level = Logger::DEBUG if @options[:verbose]
       @verification_strategy = Strategy.for(@options[:challenge]).new(self)
     end
-    
+
     def run
       register_account
       challenges = @verification_strategy.verify_domains
       logger.info "Requesting certificate"
-      certificate, chain = client.new_certificate csr
-      write_files live_path, certificate, chain, private_key
-      write_files archive_path, certificate, chain, private_key
+      certificate = client.new_certificate csr
+      write_files live_path, certificate, private_key
+      write_files archive_path, certificate, private_key
       @verification_strategy.cleanup challenges unless @options[:keep]
       publish_tlsa_records certificate
     end
@@ -88,7 +88,7 @@ module AcmeNsupdate
     end
 
     def private_key_path
-      @private_key_path ||= live_path.join("key.pem")
+      @private_key_path ||= live_path.join("privkey.pem")
     end
 
     def live_path
@@ -101,14 +101,14 @@ module AcmeNsupdate
 
     def write_files path, certificate, chain, key
       logger.info "Writing files to #{path}"
+      logger.debug "Writing #{path.join("key.pem")}"
+      path.join("privkey.pem").write key.to_pem
       logger.debug "Writing #{path.join("cert.pem")}"
       path.join("cert.pem").write certificate.to_pem
-      logger.debug "Writing #{path.join("key.pem")}"
-      path.join("key.pem").write key.to_pem
       logger.debug "Writing #{path.join("chain.pem")}"
-      path.join("chain.pem").write chain.map(&:to_pem).join
+      path.join("chain.pem").write certificate.chain_to_pem
       logger.debug "Writing #{path.join("fullchain.pem")}"
-      path.join("fullchain.pem").write [*chain, certificate].map(&:to_pem).join
+      path.join("fullchain.pem").write certificate.fullchain_to_pem
     end
 
     def publish_tlsa_records certificate

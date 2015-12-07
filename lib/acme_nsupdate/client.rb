@@ -11,6 +11,8 @@ module AcmeNsupdate
     class Error < RuntimeError
     end
 
+    RENEWAL_THRESHOLD = 2592000 # 30*24*60*60, 30 days
+
     attr_reader :options, :logger
 
     def initialize options
@@ -23,6 +25,11 @@ module AcmeNsupdate
     end
 
     def run
+      unless renewal_needed?
+        logger.info "Existing certificate is still valid long enough."
+        return
+      end
+
       register_account
       challenges = @verification_strategy.verify_domains
       logger.info "Requesting certificate"
@@ -63,6 +70,16 @@ module AcmeNsupdate
       OpenSSL::PKey::RSA.new path.read
     end
 
+    def renewal_needed?
+      return true if @options[:force]
+
+      cert_path = live_path.join("cert.pem")
+      return true unless cert_path.exist?
+
+      cert = OpenSSL::X509::Certificate.new(cert_path.read)
+      (cert.not_after - Time.now) <= RENEWAL_THRESHOLD
+    end
+
     def build_nsupdate
       Nsupdate.new(logger).tap do |nsupdate|
         nsupdate.server @options[:master] if @options[:master]
@@ -101,6 +118,7 @@ module AcmeNsupdate
       path.join("chain.pem").write certificate.chain_to_pem
       logger.debug "Writing #{path.join("fullchain.pem")}"
       path.join("fullchain.pem").write certificate.fullchain_to_pem
+      # TODO Set permissions
     end
 
     def publish_tlsa_records certificate

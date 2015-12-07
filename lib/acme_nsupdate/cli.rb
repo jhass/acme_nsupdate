@@ -22,7 +22,8 @@ module AcmeNsupdate
         o.string  "-w", "--webroot",   "Webroot to save http-01 challenges to."
         o.bool    "-V", "--verbose",   "Enable debug logging.", default: false
         o.bool    "-q", "--quiet",     "Only print error messages.", default: false
-        
+        o.bool    "-f", "--force",     "Force, even if cert is still valid.", default: false
+
         o.on "-v", "--version", "Display version." do
           puts "ACME nsupdate #{AcmeNsupdate::VERSION}"
           exit
@@ -33,11 +34,11 @@ module AcmeNsupdate
           exit
         end
       end
-       
+
       abort "Unexpected extra arguments #{@options.arguments}" unless @options.arguments.empty?
 
       @options = @options.to_h
-      
+
       abort "You need to provide a domain!" if @options[:domains].empty?
       abort "You need to provide a contact mail address!" unless @options[:contact]
       abort "Invalid TSIG key: name or key missing!" if @options[:tsig] && !@options[:tsig].include?(":")

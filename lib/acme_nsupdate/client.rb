@@ -72,15 +72,7 @@ module AcmeNsupdate
 
     def csr
       logger.debug "Generating CSR"
-      csr = OpenSSL::X509::Request.new
-      csr.public_key = private_key.public_key
-      csr.subject = OpenSSL::X509::Name.new [["CN", @options[:domains].first, OpenSSL::ASN1::UTF8STRING]]
-      if @options[:domains].size > 1
-        extension = OpenSSL::X509::ExtensionFactory.new.create_extension("subjectAltName", @options[:domains].map {|domain| "DNS:#{domain}" }.join(", "), false)
-        csr.add_attribute OpenSSL::X509::Attribute.new("extReq", OpenSSL::ASN1::Set.new([OpenSSL::ASN1::Sequence.new([extension])]))
-      end
-      csr.sign private_key, OpenSSL::Digest::SHA256.new
-      csr
+      Acme::CertificateRequest.new(names: @options[:domains])
     end
 
     def private_key
@@ -99,7 +91,7 @@ module AcmeNsupdate
       @archive_path ||= datadir.join("archive").join(Time.now.strftime("%Y%m%d%H%M%S")).join(@options[:domains].first).tap(&:mkpath)
     end
 
-    def write_files path, certificate, chain, key
+    def write_files path, certificate, key
       logger.info "Writing files to #{path}"
       logger.debug "Writing #{path.join("key.pem")}"
       path.join("privkey.pem").write key.to_pem
@@ -119,7 +111,7 @@ module AcmeNsupdate
       @options[:domains].each do |domain|
         @options[:tlsaports].each do |port|
           label = "_#{port}._tcp.#{domain}"
-          nsupdate.del label, "TLSA"
+          nsupdate.del label, "TLSA", content
           nsupdate.add label, "TLSA", content, @options[:tlsa_ttl]
         end
       end

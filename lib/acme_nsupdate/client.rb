@@ -112,13 +112,13 @@ module AcmeNsupdate
       logger.info "Writing files to #{path}"
       logger.debug "Writing #{path.join("key.pem")}"
       path.join("privkey.pem").write key.to_pem
+      path.join("privkey.pem").chmod(0600)
       logger.debug "Writing #{path.join("cert.pem")}"
       path.join("cert.pem").write certificate.to_pem
       logger.debug "Writing #{path.join("chain.pem")}"
       path.join("chain.pem").write certificate.chain_to_pem
       logger.debug "Writing #{path.join("fullchain.pem")}"
       path.join("fullchain.pem").write certificate.fullchain_to_pem
-      # TODO Set permissions
     end
 
     def publish_tlsa_records certificate

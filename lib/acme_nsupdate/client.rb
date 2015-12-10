@@ -37,7 +37,7 @@ module AcmeNsupdate
       write_files live_path, certificate, private_key
       write_files archive_path, certificate, private_key
       @verification_strategy.cleanup challenges unless @options[:keep]
-      publish_tlsa_records certificate
+      publish_tlsa_records certificate.x509
     end
 
     def register_account

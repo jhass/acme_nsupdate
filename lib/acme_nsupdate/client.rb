@@ -89,7 +89,7 @@ module AcmeNsupdate
 
     def csr
       logger.debug "Generating CSR"
-      Acme::CertificateRequest.new(names: @options[:domains])
+      Acme::CertificateRequest.new(names: @options[:domains], private_key: private_key)
     end
 
     def private_key

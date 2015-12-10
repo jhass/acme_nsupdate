@@ -1,3 +1,10 @@
+PATH
+  remote: .
+  specs:
+    acme_nsupdate (0.1.0)
+      acme-client (~> 0.2.0)
+      slop (~> 4.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -36,9 +43,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  acme-client
+  acme_nsupdate!
+  bundler (~> 1.10)
   byebug
-  slop
 
 BUNDLED WITH
    1.10.6

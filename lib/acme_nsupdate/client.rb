@@ -125,15 +125,30 @@ module AcmeNsupdate
       return if @options[:notlsa]
       logger.info "Publishing TLSA records"
       nsupdate = build_nsupdate
+      old_contents = outdated_certificates.map {|certificate|
+        "3 1 1 #{OpenSSL::Digest::SHA256.hexdigest(certificate.to_der)}"
+      }.uniq
       content = "3 1 1 #{OpenSSL::Digest::SHA256.hexdigest(certificate.public_key.to_der)}"
       @options[:domains].each do |domain|
         @options[:tlsaports].each do |port|
           label = "_#{port}._tcp.#{domain}"
+          old_contents.each do |old_content|
+            nsupdate.del label, "TLSA", old_content unless @options[:keep]
+          end
           nsupdate.del label, "TLSA", content
           nsupdate.add label, "TLSA", content, @options[:tlsa_ttl]
         end
       end
       nsupdate.send
+    end
+
+    def outdated_certificates
+      @outdated_certificates ||= datadir.join("archive")
+        .entries.select {|dir| dir.join("cert.pem").exist? }
+        .sort_by(&:basename)
+        .map {|path| OpenSSL::X509::Certificate.new path.join("cert.pem").read }
+        .tap(&:pop) # keep current
+        .tap(&:pop) # keep previous
     end
   end
 end

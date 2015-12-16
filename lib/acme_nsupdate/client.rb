@@ -129,9 +129,10 @@ module AcmeNsupdate
 
       logger.info "Publishing TLSA records"
       old_contents = outdated_certificates.map {|certificate|
-        "3 1 1 #{OpenSSL::Digest::SHA256.hexdigest(certificate.to_der)}"
+        "3 1 1 #{OpenSSL::Digest::SHA256.hexdigest(certificate.public_key.to_der)}"
       }.uniq
       content = "3 1 1 #{OpenSSL::Digest::SHA256.hexdigest(certificate.public_key.to_der)}"
+      old_contents.delete(content)
 
       @options[:domains].each do |domain|
         nsupdate = build_nsupdate
@@ -154,10 +155,13 @@ module AcmeNsupdate
     end
 
     def outdated_certificates
-      @outdated_certificates ||= datadir.join("archive")
-        .entries.select {|dir| dir.join("cert.pem").exist? }
+      domain = @options[:domains].first
+      @outdated_certificates ||= datadir
+        .join("archive")
+        .children
+        .select {|dir| dir.join(domain, "cert.pem").exist? }
         .sort_by(&:basename)
-        .map {|path| OpenSSL::X509::Certificate.new path.join("cert.pem").read }
+        .map {|path| OpenSSL::X509::Certificate.new path.join(domain, "cert.pem").read }
         .tap(&:pop) # keep current
         .tap(&:pop) # keep previous
     end

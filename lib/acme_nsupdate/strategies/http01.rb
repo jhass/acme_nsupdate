@@ -29,7 +29,7 @@ module AcmeNsupdate
 
       def cleanup challenges
         @client.logger.info("Cleaning up")
-        challenges.each do |domain, challenge|
+        challenges.each_value do |challenge|
           path = path challenge
           @client.logger.debug("Removing #{path}")
           File.delete path if File.exist? path

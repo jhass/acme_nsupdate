@@ -11,7 +11,7 @@ module AcmeNsupdate
     class Error < RuntimeError
     end
 
-    RENEWAL_THRESHOLD = 2592000 # 30*24*60*60, 30 days
+    RENEWAL_THRESHOLD = 2_592_000 # 30*24*60*60, 30 days
 
     attr_reader :options, :logger
 
@@ -41,11 +41,11 @@ module AcmeNsupdate
     end
 
     def register_account
-      unless account_key_path.exist?
-        logger.debug "No key found at #{account_key_path}, registering"
-        registration = client.register contact: "mailto:#{@options[:contact]}"
-        registration.agree_terms
-      end
+      return if account_key_path.exist?
+
+      logger.debug "No key found at #{account_key_path}, registering"
+      registration = client.register contact: "mailto:#{@options[:contact]}"
+      registration.agree_terms
     end
 
     def client
@@ -83,7 +83,7 @@ module AcmeNsupdate
     def build_nsupdate
       Nsupdate.new(logger).tap do |nsupdate|
         nsupdate.server @options[:master] if @options[:master]
-        nsupdate.tsig *@options[:tsig].split(":") if @options[:tsig]
+        nsupdate.tsig(*@options[:tsig].split(":")) if @options[:tsig]
       end
     end
 
@@ -105,7 +105,10 @@ module AcmeNsupdate
     end
 
     def archive_path
-      @archive_path ||= datadir.join("archive").join(Time.now.strftime("%Y%m%d%H%M%S")).join(@options[:domains].first).tap(&:mkpath)
+      @archive_path ||= datadir.join("archive")
+                               .join(Time.now.strftime("%Y%m%d%H%M%S"))
+                               .join(@options[:domains].first)
+                               .tap(&:mkpath)
     end
 
     def write_files path, certificate, key

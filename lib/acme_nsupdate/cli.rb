@@ -39,18 +39,47 @@ module AcmeNsupdate
 
       @options = @options.to_h
 
-      abort "You need to provide a domain!" if @options[:domains].empty?
-      abort "You need to provide a contact mail address!" unless @options[:contact]
-      abort "Invalid TSIG key: name or key missing!" if @options[:tsig] && !@options[:tsig].include?(":")
-      abort "No webroot given or not writable!" if @options[:challenge] == "http-01" && (@options[:webroot].nil? || !File.writable?(@options[:webroot]))
-      abort "Invalid TTL specification" unless @options[:ttl][/\A\d+,\d+\z/]
-      abort "Can't silence output and enable debug logging at the same time." if @options[:verbose] && @options[:quiet]
+      abort "You need to provide a domain!"                                   unless domain_given?
+      abort "You need to provide a contact mail address!"                     unless contact_given?
+      abort "Invalid TSIG key: name or key missing!"                          unless valid_tsig?
+      abort "No webroot given or not writable!"                               unless valid_webroot?
+      abort "Invalid TTL specification"                                       unless valid_ttl?
+      abort "Can't silence output and enable debug logging at the same time." unless valid_verbosity?
 
       @options[:txt_ttl], @options[:tlsa_ttl] = @options[:ttl].split(",")
     end
 
     def run
       Client.new(@options).run
+    end
+
+    private
+
+    def domain_given?
+      !@options[:domains].empty?
+    end
+
+    def contact_given?
+      !@options[:contact].nil?
+    end
+
+    def valid_tsig?
+      @options[:tsig].nil? ||
+      @options[:tsig].include?(":")
+    end
+
+    def valid_webroot?
+      @options[:challenge] != "http-01" ||
+      !@options[:webroot].nil? ||
+      File.writable?(@options[:webroot])
+    end
+
+    def valid_ttl?
+      !@options[:ttl][/\A\d+,\d+\z/].nil?
+    end
+
+    def valid_verbosity?
+      !(@options[:verbose] && @options[:quiet])
     end
   end
 end

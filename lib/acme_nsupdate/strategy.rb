@@ -4,7 +4,7 @@ module AcmeNsupdate
       def strategies
         @strategies ||= {}
       end
-      
+
       def for identifier
         strategies.fetch(identifier) { raise ArgumentError.new "Unknown strategy #{identifier}!" }
       end
@@ -13,7 +13,7 @@ module AcmeNsupdate
         strategies[base::IDENTIFIER] = base
       end
     end
-    
+
     def verify_domains
       @client.logger.info("Validating domains")
       publish_challenges.tap do |challenges|

@@ -40,6 +40,7 @@ module AcmeNsupdate
       @options = @options.to_h
 
       abort "You need to provide a domain!"                                   unless domain_given?
+      abort "A domain was given more than once!"                              unless domains_unique?
       abort "You need to provide a contact mail address!"                     unless contact_given?
       abort "Invalid TSIG key: name or key missing!"                          unless valid_tsig?
       abort "No webroot given or not writable!"                               unless valid_webroot?
@@ -57,6 +58,10 @@ module AcmeNsupdate
 
     def domain_given?
       !@options[:domains].empty?
+    end
+
+    def domains_unique?
+      @options[:domains] == @options[:domains].uniq
     end
 
     def contact_given?

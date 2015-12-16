@@ -12,7 +12,7 @@ module AcmeNsupdate
       end
 
       def publish_challenges
-        @client.logger.debug("Publishing challenges")
+        @client.logger.debug "Publishing challenges for #{@client.options[:domains].join(", ")}"
         nsupdate = @client.build_nsupdate
 
         challenges = @client.options[:domains].map {|domain|

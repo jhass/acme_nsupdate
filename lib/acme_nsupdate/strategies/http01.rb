@@ -28,7 +28,7 @@ module AcmeNsupdate
       end
 
       def cleanup challenges
-        @client.logger.info("Cleaning up")
+        @client.logger.info("Cleaning up challenges")
         challenges.each_value do |challenge|
           path = path challenge
           @client.logger.debug("Removing #{path}")

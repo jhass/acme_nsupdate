@@ -19,8 +19,8 @@ module AcmeNsupdate
           authorization = @client.client.authorize domain: domain
           challenge = authorization.dns01
           raise "Challenge dns-01 not supported by the given ACME server" unless challenge
-          nsupdate.del(*record(domain, challenge, true)) unless @options[:keep]
-          nsupdate.add(*record(domain, challenge), @options[:txt_ttl])
+          nsupdate.del(*record(domain, challenge, true)) unless @client.options[:keep]
+          nsupdate.add(*record(domain, challenge), @client.options[:txt_ttl])
 
           [domain, challenge]
         }.to_h
@@ -31,12 +31,12 @@ module AcmeNsupdate
       end
 
       def cleanup challenges
-        @client.logger.info("Cleaning up")
-        nsupdate = @client.build_nsupdate
+        @client.logger.info("Cleaning up challenges")
         challenges.each do |domain, challenge|
+          nsupdate = @client.build_nsupdate
           nsupdate.del(*record(domain, challenge))
+          nsupdate.send
         end
-        nsupdate.send
       end
 
       private

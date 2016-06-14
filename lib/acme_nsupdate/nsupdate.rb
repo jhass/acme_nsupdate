@@ -1,3 +1,5 @@
+require "open3"
+
 module AcmeNsupdate
   class Nsupdate
     class Error < RuntimeError
@@ -26,21 +28,24 @@ module AcmeNsupdate
 
     def send
       @logger.debug("Starting nsupdate:")
-      IO.popen("nsupdate", "r+") do |nsupdate|
+      Open3.popen3("nsupdate") do |stdin, stdout, stderr, wait_thr|
         @commands.each do |command|
           @logger.debug "  #{command}"
-          nsupdate.puts command
+          stdin.puts command
         end
         @logger.debug("  send")
-        nsupdate.puts "send"
-        nsupdate.close_write
-        errors = nsupdate.readlines.map {|line| line[/^>\s*(.*)$/, 1].strip }.reject(&:empty?)
+        stdin.puts "send"
+        stdin.close
+        errors = stdout.readlines.map {|line| line[/^>\s*(.*)$/, 1].strip }.reject(&:empty?)
+        errors.concat stderr.readlines.map(&:strip).reject(&:empty?)
+        stdout.close
+        stderr.close
         unless errors.empty?
           errors = errors.join(" ")
-          logger.warn "DNS update transaction failed: #{errors}"
-          logger.warn "Transaction:"
+          @logger.error "DNS update transaction failed: #{errors}"
+          @logger.info "Transaction:"
           @commands.each do |command|
-            logger.warn "  #{command}"
+            @logger.info "  #{command}"
           end
           raise Error.new errors
         end

@@ -13,19 +13,19 @@ module AcmeNsupdate
 
       def publish_challenges
         @client.logger.debug "Publishing challenges for #{@client.options[:domains].join(", ")}"
-        nsupdate = @client.build_nsupdate
 
         challenges = @client.options[:domains].map {|domain|
+          nsupdate = @client.build_nsupdate
+
           authorization = @client.client.authorize domain: domain
           challenge = authorization.dns01
-          raise "Challenge dns-01 not supported by the given ACME server" unless challenge
+          abort "Challenge dns-01 not supported by the given ACME server" unless challenge
           nsupdate.del(*record(domain, challenge, true)) unless @client.options[:keep]
           nsupdate.add(*record(domain, challenge), @client.options[:txt_ttl])
+          nsupdate.send
 
           [domain, challenge]
         }.to_h
-
-        nsupdate.send
 
         challenges
       end

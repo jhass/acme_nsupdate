@@ -38,6 +38,8 @@ module AcmeNsupdate
       write_files archive_path, certificate, private_key
       @verification_strategy.cleanup challenges unless @options[:keep]
       publish_tlsa_records certificate.x509
+    rescue Nsupdate::Error
+      abort "nsupdate failed." # detail logged in Nsupdate
     end
 
     def register_account
@@ -140,12 +142,16 @@ module AcmeNsupdate
         @options[:tlsaports].each do |port|
           restriction, port = port.split(":")
           restriction, port = port, restriction unless port
+          label = "_#{port}._tcp.#{domain}"
+
           if restriction
             restrictions = restriction.delete("[]").split(" ")
-            next unless restrictions.include? domain
+            unless restrictions.include? domain
+              logger.debug "Not publishing TLSA record for #{label}, not one of #{restrictions.join(" ")}"
+              next
+            end
           end
 
-          label = "_#{port}._tcp.#{domain}"
           old_contents.each do |old_content|
             nsupdate.del label, "TLSA", old_content unless @options[:keep]
           end
@@ -155,8 +161,8 @@ module AcmeNsupdate
 
         begin
           nsupdate.send
-        rescue AcmeNsupdate::Nsupdate::Error
-          # Continue trying other zones
+        rescue Nsupdate::Error
+          # Continue trying other zones, errors logged in Nsupdate
         end
       end
     end

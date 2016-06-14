@@ -18,7 +18,7 @@ module AcmeNsupdate
         @client.options[:domains].map {|domain|
           authorization = @client.client.authorize domain: domain
           challenge = authorization.http01
-          raise "Challenge http-01 not supported by this ACME server" unless challenge
+          abort "Challenge http-01 not supported by this ACME server" unless challenge
           path = path challenge
           @client.logger.debug "Writing #{path} for #{domain}"
           FileUtils.mkdir_p File.dirname path

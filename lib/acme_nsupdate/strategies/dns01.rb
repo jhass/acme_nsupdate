@@ -27,6 +27,9 @@ module AcmeNsupdate
           [domain, challenge]
         }.to_h
 
+        @client.logger.info "Waiting 120 seconds for the DNS updates to go live"
+        sleep 120 # We wait some time to give the slaves time to update
+
         challenges
       end
 

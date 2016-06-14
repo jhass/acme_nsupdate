@@ -138,6 +138,13 @@ module AcmeNsupdate
         nsupdate = build_nsupdate
 
         @options[:tlsaports].each do |port|
+          restriction, port = port.split(":")
+          restriction, port = port, restriction unless port
+          if restriction
+            restrictions = restriction.delete("[]").split(" ")
+            next unless restrictions.include? domain
+          end
+
           label = "_#{port}._tcp.#{domain}"
           old_contents.each do |old_content|
             nsupdate.del label, "TLSA", old_content unless @options[:keep]

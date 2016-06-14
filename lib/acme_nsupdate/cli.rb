@@ -7,8 +7,8 @@ module AcmeNsupdate
   class Cli
     def initialize argv=ARGV
       @options = Slop.parse(argv) do |o|
-        o.array   "-d", "--domains",   "The domain to request a certificate for."
-        o.string  "-m", "--master",    "The nameserver to use to provision the TXT record to. Defaults to the primary nameserver specifed in the SOA record."
+        o.array   "-d", "--domains",   "The FQDNs to request a certificate for, multiple should be comma separated."
+        o.string  "-m", "--master",    "The nameserver to use to provision the TXT and TLSA records to. Defaults to the primary nameserver specifed in the SOA record."
         o.string  "-t", "--ttl",       "The TTLs of the TXT and TLSA records created, separated by a comma. Defaults to 60,43200", default: "60,43200"
         o.bool    "-k", "--keep",      "Skip removing any kind of temporary data after successfully obtaining the certificate."
         o.string  "-K", "--tsig",      "TSIG key to use for DNS updates. Expected format is name:key."
@@ -17,7 +17,7 @@ module AcmeNsupdate
         o.string  "-c", "--contact",   "Contact mail address."
         o.integer "-l", "--keylength", "Length of the generated RSA keys. Defaults to 2048.", default: 2048
         o.bool    "-T", "--notlsa",    "Do not publish TLSA records (publishing them drops all old ones). Defaults to no.", default: false
-        o.array   "-p", "--tlsaports", "Ports to publish TLSA records for. Defaults to 443.", default: ["443"]
+        o.array   "-p", "--tlsaports", "Ports to publish TLSA records for. A plain port publishes for all FQDNs given, fqdn:port publishes for a single FQDN, [fqdn1 fqdn2]:port publishes for a subset. Multiple values should be comma separated. Defaults to 443.", default: ["443"]
         o.string  "-C", "--challenge", "Challenge to use, either http-01 or dns-01. http-01 requires the webroot option. Defaults to http-01.", default: "http-01"
         o.string  "-w", "--webroot",   "Webroot to save http-01 challenges to."
         o.bool    "-V", "--verbose",   "Enable debug logging.", default: false

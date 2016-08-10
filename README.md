@@ -27,6 +27,7 @@ $ acme_nsupdate --help
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/jhass/acme_nsupdate.
+Feature contributions are welcome too, feature requests will most likely not be fulfilled.
 
 
 ## License

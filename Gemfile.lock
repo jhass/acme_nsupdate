@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    acme_nsupdate (0.1.0)
+    acme_nsupdate (0.2.0)
       acme-client (~> 0.4.0)
       faraday-detailed_logger
       slop (~> 4.0)
@@ -17,6 +17,7 @@ GEM
     faraday-detailed_logger (2.0.0)
       faraday
     multipart-post (2.0.0)
+    rake (11.2.2)
     slop (4.3.0)
 
 PLATFORMS
@@ -26,6 +27,7 @@ DEPENDENCIES
   acme_nsupdate!
   bundler (~> 1.10)
   byebug
+  rake
 
 BUNDLED WITH
    1.12.5

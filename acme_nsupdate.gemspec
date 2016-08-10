@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "slop", "~> 4.0"
-  spec.add_dependency "acme-client", "~> 0.3.0"
+  spec.add_dependency "acme-client", "~> 0.4.0"
   spec.add_dependency "faraday-detailed_logger"
   spec.add_development_dependency "bundler", "~> 1.10"
 end

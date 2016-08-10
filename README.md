@@ -6,7 +6,7 @@ CLI tool to obtain certificates via ACME and update the matching TLSA records.
 The primary authentication method is http-01 via webroot for now, but dns-01 is supported too.
 
 *Don't actually trust this, I wrote it for myself. Read and understand the code if you want to
-actually use it. **There are no tests!***
+actually use it.* **There are no tests!**
 
 ## Installation
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    acme_nsupdate (0.2.0)
+    acme_nsupdate (0.2.1)
       acme-client (~> 0.4.0)
       faraday-detailed_logger
       slop (~> 4.0)

@@ -1,6 +1,7 @@
 require "openssl"
 require "pathname"
 require "logger"
+require "time" # Workaround missing require in acme-client 0.4.0
 
 require "acme-client"
 require "faraday/detailed_logger"

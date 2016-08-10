@@ -1,7 +1,9 @@
 require "openssl"
 require "pathname"
+require "logger"
 
 require "acme-client"
+require "faraday/detailed_logger"
 
 require "acme_nsupdate/strategy"
 require "acme_nsupdate/nsupdate"
@@ -51,7 +53,9 @@ module AcmeNsupdate
     end
 
     def client
-      @client ||= Acme::Client.new private_key: account_key, endpoint: @options[:endpoint]
+      @client ||= Acme::Client.new(private_key: account_key, endpoint: @options[:endpoint]).tap do |client|
+        client.connection.response :detailed_logger, @logger if @options[:verbose]
+      end
     end
 
     def account_key_path

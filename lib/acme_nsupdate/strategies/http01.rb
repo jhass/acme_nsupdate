@@ -14,7 +14,7 @@ module AcmeNsupdate
       end
 
       def publish_challenges
-        map_authoriations {|domain, authorization|
+        map_authorizations {|domain, authorization|
           challenge = authorization.http01
           abort "Challenge http-01 not supported by this ACME server" unless challenge
 
@@ -23,8 +23,8 @@ module AcmeNsupdate
           FileUtils.mkdir_p File.dirname path
           File.write path, challenge.file_content
 
-          [domain, challenge]
-        }.compact.to_h
+          challenge
+        }
       end
 
       def cleanup challenges

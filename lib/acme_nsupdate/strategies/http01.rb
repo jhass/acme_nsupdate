@@ -14,17 +14,17 @@ module AcmeNsupdate
       end
 
       def publish_challenges
-        @client.logger.debug "Publishing challenges for #{@client.options[:domains].join(", ")}"
-        @client.options[:domains].map {|domain|
-          authorization = @client.client.authorize domain: domain
+        map_authoriations {|domain, authorization|
           challenge = authorization.http01
           abort "Challenge http-01 not supported by this ACME server" unless challenge
+
           path = path challenge
           @client.logger.debug "Writing #{path} for #{domain}"
           FileUtils.mkdir_p File.dirname path
           File.write path, challenge.file_content
+
           [domain, challenge]
-        }.to_h
+        }.compact.to_h
       end
 
       def cleanup challenges

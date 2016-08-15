@@ -14,24 +14,23 @@ module AcmeNsupdate
       end
 
       def publish_challenges
-        @client.logger.debug "Publishing challenges for #{@client.options[:domains].join(", ")}"
-
-        challenges = @client.options[:domains].map {|domain|
-          nsupdate = @client.build_nsupdate
-
-          authorization = @client.client.authorize domain: domain
+        challenges = map_authorizations {|domain, authorization|
           challenge = authorization.dns01
           abort "Challenge dns-01 not supported by the given ACME server" unless challenge
+
+          nsupdate = @client.build_nsupdate
           nsupdate.del(*record(domain, challenge, true)) unless @client.options[:keep]
           nsupdate.add(*record(domain, challenge), @client.options[:txt_ttl])
           nsupdate.send
 
-          [domain, challenge]
-        }.to_h
+          challenge
+        }
 
-        @client.logger.info "Waiting up to 120 seconds for the DNS updates to go live"
-        unless verify_live_challenges(@client.options[:master], challenges)
-          raise AcmeNsupdate::Client::Error, "DNS challenges didn't appear on all nameservers within 120 seconds"
+        unless challenges.empty?
+          @client.logger.info "Waiting up to 120 seconds for the DNS updates to go live"
+          unless verify_live_challenges(@client.options[:master], challenges)
+            raise AcmeNsupdate::Client::Error, "DNS challenges didn't appear on all nameservers within 120 seconds"
+          end
         end
 
         challenges

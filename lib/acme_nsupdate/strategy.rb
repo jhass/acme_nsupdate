@@ -21,7 +21,28 @@ module AcmeNsupdate
       end
     end
 
+
     private
+
+    def map_authorizations
+      @client.logger.debug "Publishing challenges for #{@client.options[:domains].join(", ")}"
+
+      challenges = @client.options[:domains].map {|domain|
+        authorization = @client.client.authorize domain: domain
+        if authorization.status == "valid"
+          @client.logger.debug("Skipping challenge for #{domain}, already valid.")
+          next
+        end
+
+        challenge = yield domain, authorization
+        unless challenge
+          @client.logger.debug("Skipping challenge for #{domain}, not solvable.")
+          next
+        end
+
+        [domain, challenge]
+      }.compact.to_h
+    end
 
     def wait_for_verification challenges
       @client.logger.debug("Requesting verification")

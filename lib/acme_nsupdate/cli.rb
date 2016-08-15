@@ -74,9 +74,10 @@ module AcmeNsupdate
     end
 
     def valid_webroot?
-      @options[:challenge] != "http-01" ||
-      !@options[:webroot].nil? ||
-      File.writable?(@options[:webroot])
+      return true unless @options[:challenge] == "http-01"
+      return false if @options[:webroot].nil?
+      return true if File.writable?(@options[:webroot])
+      false
     end
 
     def valid_ttl?

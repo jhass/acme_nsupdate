@@ -14,6 +14,18 @@ module AcmeNsupdate
     class Error < RuntimeError
     end
 
+    class DebuggableClient < Acme::Client
+      attr_accessor :logger
+
+      def new_connection endpoint:
+        super do |configuration|
+          yield(configuration) if block_given?
+          configuration.response :detailed_logger, @logger if @logger
+        end
+      end
+
+    end
+
     RENEWAL_THRESHOLD = 2_592_000 # 30*24*60*60, 30 days
 
     attr_reader :options, :logger
@@ -53,8 +65,8 @@ module AcmeNsupdate
     end
 
     def client
-      @client ||= Acme::Client.new(private_key: account_key, directory: @options[:endpoint]).tap do |client|
-        client.connection.response :detailed_logger, @logger if @options[:verbose]
+      @client ||= DebuggableClient.new(private_key: account_key, directory: @options[:endpoint]).tap do |client|
+        client.logger = @logger if @options[:verbose]
       end
     end
 
@@ -94,7 +106,7 @@ module AcmeNsupdate
     end
 
     def fetch_certificate order
-      order.finalize csr
+      order.finalize csr: csr
       while order.status == 'processing'
         sleep 3
         order.reload

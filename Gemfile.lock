@@ -1,33 +1,33 @@
 PATH
   remote: .
   specs:
-    acme_nsupdate (0.3.2)
-      acme-client (~> 0.5.0)
+    acme_nsupdate (0.4.0)
+      acme-client (~> 2.0.0)
       faraday-detailed_logger
       slop (~> 4.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    acme-client (0.5.0)
+    acme-client (2.0.5)
       faraday (~> 0.9, >= 0.9.1)
-    byebug (9.0.6)
-    faraday (0.11.0)
+    byebug (11.0.1)
+    faraday (0.17.3)
       multipart-post (>= 1.2, < 3)
-    faraday-detailed_logger (2.1.1)
-      faraday (~> 0.8)
-    multipart-post (2.0.0)
-    rake (12.0.0)
-    slop (4.4.1)
+    faraday-detailed_logger (2.2.0)
+      faraday (>= 0.8, < 2)
+    multipart-post (2.1.1)
+    rake (13.0.1)
+    slop (4.8.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   acme_nsupdate!
-  bundler (~> 1.10)
+  bundler (~> 2.0)
   byebug
   rake
 
 BUNDLED WITH
-   1.14.3
+   2.1.4

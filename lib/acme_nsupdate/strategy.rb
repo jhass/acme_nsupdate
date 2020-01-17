@@ -16,39 +16,40 @@ module AcmeNsupdate
 
     def verify_domains
       @client.logger.info("Validating domains")
-      publish_challenges.tap do |challenges|
+      order = @client.client.new_order identifiers: @client.options[:domains]
+      challenges = publish_challenges(order).tap do |challenges|
         wait_for_verification challenges
       end
+      [order, challenges]
     end
 
 
     private
 
-    def map_authorizations
+    def map_authorizations(order)
       @client.logger.debug "Publishing challenges for #{@client.options[:domains].join(", ")}"
 
-      challenges = @client.options[:domains].map {|domain|
-        authorization = @client.client.authorize domain: domain
+      order.authorizations.map {|authorization|
         if authorization.status == "valid"
-          @client.logger.debug("Skipping challenge for #{domain}, already valid.")
+          @client.logger.debug("Skipping challenge for #{authorization.domain}, already valid.")
           next
         end
 
-        challenge = yield domain, authorization
+        challenge = yield authorization.domain, authorization
         unless challenge
-          @client.logger.debug("Skipping challenge for #{domain}, not solvable.")
+          @client.logger.debug("Skipping challenge for #{authorization.domain}, not solvable.")
           next
         end
 
-        [domain, challenge]
+        [authorization.domain, challenge]
       }.compact.to_h
     end
 
     def wait_for_verification challenges
       @client.logger.debug("Requesting verification")
-      challenges.each_value(&:request_verification)
+      challenges.each_value(&:request_validation)
       @client.logger.debug("Waiting for verification")
-      challenges.map {|_, challenge| Thread.new { sleep(5) while challenge.verify_status == "pending" } }.each(&:join)
+      challenges.map {|_, challenge| Thread.new { sleep(5) while challenge.status == "pending" } }.each(&:join)
       challenges.each do |domain, challenge|
         raise "Verification of #{domain} failed: #{challenge.error}" unless challenge.status == "valid"
       end

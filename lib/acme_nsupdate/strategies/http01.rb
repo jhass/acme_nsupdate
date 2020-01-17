@@ -13,8 +13,8 @@ module AcmeNsupdate
         @client = client
       end
 
-      def publish_challenges
-        map_authorizations {|domain, authorization|
+      def publish_challenges(order)
+        map_authorizations(order) {|domain, authorization|
           challenge = authorization.http01
           abort "Challenge http-01 not supported by this ACME server" unless challenge
 

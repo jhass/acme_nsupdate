@@ -12,7 +12,7 @@ module AcmeNsupdate
         o.string  "-t", "--ttl",       "The TTLs of the TXT and TLSA records created, separated by a comma. Defaults to 60,43200", default: "60,43200"
         o.bool    "-k", "--keep",      "Skip removing any kind of temporary data after successfully obtaining the certificate."
         o.string  "-K", "--tsig",      "TSIG key to use for DNS updates. Expected format is name:key."
-        o.string  "-e", "--endpoint",  "ACME API endpoint. Defaults to: https://acme-v01.api.letsencrypt.org", default: "https://acme-v01.api.letsencrypt.org"
+        o.string  "-e", "--endpoint",  "ACME API endpoint directory. Defaults to: https://acme-v02.api.letsencrypt.org/directory", default: "https://acme-v02.api.letsencrypt.org/directory"
         o.string  "-D", "--datadir",   "Base directory for certificates and account keys. Defaults to: /etc/letsencrypt", default: "/etc/letsencrypt"
         o.string  "-c", "--contact",   "Contact mail address."
         o.integer "-l", "--keylength", "Length of the generated RSA keys. Defaults to 2048.", default: 2048

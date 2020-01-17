@@ -34,13 +34,13 @@ module AcmeNsupdate
       end
 
       register_account
-      challenges = @verification_strategy.verify_domains
+      order, challenges = @verification_strategy.verify_domains
       logger.info "Requesting certificate"
-      certificate = client.new_certificate csr
+      certificate = fetch_certificate order
       write_files live_path, certificate, private_key
       write_files archive_path, certificate, private_key
       @verification_strategy.cleanup challenges unless @options[:keep]
-      publish_tlsa_records certificate.x509
+      publish_tlsa_records certificate
     rescue Nsupdate::Error
       abort "nsupdate failed." # detail logged in Nsupdate
     end
@@ -49,12 +49,11 @@ module AcmeNsupdate
       return if account_key_path.exist?
 
       logger.debug "No key found at #{account_key_path}, registering"
-      registration = client.register contact: "mailto:#{@options[:contact]}"
-      registration.agree_terms
+      client.new_account contact: "mailto:#{@options[:contact]}", terms_of_service_agreed: true
     end
 
     def client
-      @client ||= Acme::Client.new(private_key: account_key, endpoint: @options[:endpoint]).tap do |client|
+      @client ||= Acme::Client.new(private_key: account_key, directory: @options[:endpoint]).tap do |client|
         client.connection.response :detailed_logger, @logger if @options[:verbose]
       end
     end
@@ -94,6 +93,16 @@ module AcmeNsupdate
       end
     end
 
+    def fetch_certificate order
+      order.finalize csr
+      while order.status == 'processing'
+        sleep 3
+        order.reload
+      end
+      raise "Failed to fetch certificate, order failed." unless order.status == 'valid'
+      order.certificate
+    end
+
     def csr
       logger.debug "Generating CSR"
       Acme::Client::CertificateRequest.new(names: @options[:domains], private_key: private_key)
@@ -123,16 +132,14 @@ module AcmeNsupdate
       logger.debug "Writing #{path.join("key.pem")}"
       path.join("privkey.pem").write key.to_pem
       path.join("privkey.pem").chmod(0600)
-      logger.debug "Writing #{path.join("cert.pem")}"
-      path.join("cert.pem").write certificate.to_pem
-      logger.debug "Writing #{path.join("chain.pem")}"
-      path.join("chain.pem").write certificate.chain_to_pem
       logger.debug "Writing #{path.join("fullchain.pem")}"
-      path.join("fullchain.pem").write certificate.fullchain_to_pem
+      path.join("fullchain.pem").write certificate
     end
 
-    def publish_tlsa_records certificate
+    def publish_tlsa_records certificate_pem
       return if @options[:notlsa]
+
+      certificate = OpenSSL::X509::Certificate.new certificate_pem
 
       logger.info "Publishing TLSA records"
       old_contents = outdated_certificates.map {|certificate|
@@ -177,9 +184,9 @@ module AcmeNsupdate
       @outdated_certificates ||= datadir
         .join("archive")
         .children
-        .select {|dir| dir.join(domain, "cert.pem").exist? }
+        .select {|dir| dir.join(domain, "fullchain.pem").exist? }
         .sort_by(&:basename)
-        .map {|path| OpenSSL::X509::Certificate.new path.join(domain, "cert.pem").read }
+        .map {|path| OpenSSL::X509::Certificate.new path.join(domain, "fullchain.pem").read }
         .tap(&:pop) # keep current
         .tap(&:pop) # keep previous
     end

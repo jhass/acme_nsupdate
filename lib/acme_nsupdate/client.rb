@@ -91,7 +91,7 @@ module AcmeNsupdate
     def renewal_needed?
       return true if @options[:force]
 
-      cert_path = live_path.join("cert.pem")
+      cert_path = live_path.join("fullchain.pem")
       return true unless cert_path.exist?
 
       cert = OpenSSL::X509::Certificate.new(cert_path.read)

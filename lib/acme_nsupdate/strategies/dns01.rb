@@ -57,7 +57,7 @@ module AcmeNsupdate
             @client.logger.debug "Got #{records.size} TXT records for #{name}: #{records.map(&:inspect).join(", ")}"
             if records.include? content
               true
-            elsif waited == timeout
+            elsif waited >= timeout
               @client.logger.error "None matched, timeout reached, aborting"
               return false
             else
@@ -83,7 +83,7 @@ module AcmeNsupdate
           begin
             sender = requester.sender(message, name, primary, 53)
             reply, _ = requester.request(sender, 10)
-            authority = reply.authority.first.first.to_s
+            authority = !reply.authority.empty? ? reply.authority.first.first.to_s : reply.answer.first[2].to_s
           ensure
             requester.close
           end

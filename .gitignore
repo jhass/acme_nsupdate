@@ -2,3 +2,4 @@
 vendor/bundle
 .byebug_history
 pkg/
+Gemfile.lock

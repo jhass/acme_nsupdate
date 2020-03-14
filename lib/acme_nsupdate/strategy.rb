@@ -48,8 +48,25 @@ module AcmeNsupdate
     def wait_for_verification challenges
       @client.logger.debug("Requesting verification")
       challenges.each_value(&:request_validation)
-      @client.logger.debug("Waiting for verification")
-      challenges.map {|_, challenge| Thread.new { sleep(5) while challenge.status == "pending" } }.each(&:join)
+
+      @client.logger.debug("Waiting 120 seconds for verification")
+      waited = 0
+      challenges.each do |domain, challenge|
+        challenge.reload
+
+        next unless challenge.status == "pending"
+
+        if waited >= 120
+          @client.logger.error "Timeout while waiting for validation of challenge for #{domain}"
+          break
+        end
+
+        @client.logger.debug "Challenge for #{domain} is pending, waiting 5 seconds"
+        sleep(5)
+        waited += 5
+        redo
+      end
+
       challenges.each do |domain, challenge|
         raise "Verification of #{domain} failed: #{challenge.error}" unless challenge.status == "valid"
       end

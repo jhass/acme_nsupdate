@@ -83,14 +83,20 @@ module AcmeNsupdate
           begin
             sender = requester.sender(message, name, primary, 53)
             reply, _ = requester.request(sender, 10)
-            authority = !reply.authority.empty? ? reply.authority.first.first.to_s : reply.answer.first[2].to_s
+            authority = !reply.authority.empty? ? reply.authority.first.first.to_s : reply.answer.first.first.to_s
           ensure
             requester.close
           end
         end
 
-        return [] unless authority
-        query(primary, authority, :NS).map {|record| record.name.to_s }.uniq
+        unless authority
+          @client.logger.warn "Could not determine authority for #{name}, returning empty list of nameservers"
+          return []
+        end
+
+        query(primary, authority, :NS).map {|record| record.name.to_s }.uniq.tap do |nameservers|
+          @client.logger.debug "List of nameservers to check: #{nameservers.join(', ')}"
+        end
       end
 
       def query(nameserver, name, qtype)
